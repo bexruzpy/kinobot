@@ -19,7 +19,7 @@ db_name='kino_db',
     host='localhost',
     port=5432
 )
-@bot.message_handler(commands=["start"], func=lambda x: x.from_user.id == ADMIN and x.chat.type == "supergroup" and channels["edited"] != [])
+@bot.message_handler(commands=["start"], func=lambda x: x.from_user.id == ADMIN and x.chat.type == "supergroup" and CHANNELS["edited"] != [])
 def admin_set_channel(message):
     ch_id = message.chat.id
     try:
@@ -32,12 +32,12 @@ def admin_set_channel(message):
     if message.text.strip()[0] != "@" and not text.startswith("https://t.me/+"):
         bot.send_message(message.chat.id, "Noto'g'ri username qayta kiriting")
         return
-    tur, kanal_id = map(str, channels["edited"].pop().split("_"))
+    tur, kanal_id = map(str, CHANNELS["edited"].pop().split("_"))
     if tur == "a":
-        channels["asosiy_kanllar"][f"kanal_{kanal_id}"] = text
+        CHANNELS["asosiy_kanllar"][f"kanal_{kanal_id}"] = text
     else:
-        channels["yuklash_kanal"][f"kanal_{kanal_id}"] = text
-    update_channels(channels)
+        CHANNELS["yuklash_kanal"][f"kanal_{kanal_id}"] = text
+    update_channels(CHANNELS)
     bot.send_message(message.from_user.id, "Kanal muvaffaqiyatli sozlandi 👌")
     bot.send_message(message.chat.id, "Ushbu guruh sozlandi 👌")
 @bot.message_handler(func=lambda x: x.chat.type != "private")
@@ -49,7 +49,7 @@ def kanal(message):
     kanal_id = int(message.text.split("_")[-1])
     if kanal_id > 6:
         return
-    kanal = channels["asosiy_kanllar"][f"kanal_{kanal_id}"]
+    kanal = CHANNELS["asosiy_kanllar"][f"kanal_{kanal_id}"]
     markup = types.InlineKeyboardMarkup()
     if kanal != "-":
         markup.row(
@@ -69,7 +69,7 @@ def kanal(message):
     kanal_id = int(message.text.split("_")[-1])
     if kanal_id > 6:
         return
-    kanal = channels["yuklash_kanal"][f"kanal_{kanal_id}"]
+    kanal = CHANNELS["yuklash_kanal"][f"kanal_{kanal_id}"]
     markup = types.InlineKeyboardMarkup()
     if kanal != "-":
         markup.row(
@@ -98,8 +98,10 @@ def start(message):
             try:
                 # admin uchun tugma
                 markup = types.InlineKeyboardMarkup()
+                taxrirlash = types.InlineKeyboardButton("Taxrirlash 🛠", url=f"http://45.138.158.199:5000/edit/{kino_id}?secret_key={SECRET_KEY}")
                 del_b = types.InlineKeyboardButton("O'chirish 🗑", callback_data="delete")
                 no = types.InlineKeyboardButton("Yopish ❌", callback_data="close")
+                markup.row(taxrirlash)
                 markup.row(no, del_b)
                 kod = int(text[4:])
                 kino = db.get_kino_by_id(kod)
@@ -107,16 +109,22 @@ def start(message):
                     bot.send_message(chat_id=chat_id, text="Ushbu idga mos kino topilmadi")
                     return
                 if chat_id == ADMIN:
-                    bot.send_video(chat_id=chat_id, video=kino[2], protect_content=True, caption=f"🎬 Nomi: {kino[1]}\n\n🔒 Kino kodi: {kino[0]}\n\nBizning kanal: {channels['glavniy_channel']}", reply_markup=markup)
+                    bot.send_video(chat_id=chat_id, video=kino[2], protect_content=True, caption=f"🎬 Nomi: {kino[1]}\n\n🔒 Kino kodi: {kino[0]}\n\nBizning kanal: {CHANNELS['glavniy_channel']}", reply_markup=markup)
                 else:
-                    bot.send_video(chat_id=chat_id, video=kino[2], protect_content=True, caption=f"🎬 Nomi: {kino[1]}\n\n🔒 Kino kodi: {kino[0]}\n\nBizning kanal: {channels['glavniy_channel']}")
+                    bot.send_video(chat_id=chat_id, video=kino[2], protect_content=True, caption=f"🎬 Nomi: {kino[1]}\n\n🔒 Kino kodi: {kino[0]}\n\nBizning kanal: {CHANNELS['glavniy_channel']}")
                 return
             except:
                 pass
-        bot.send_message(chat_id, f"Xush kelibsiz admin\n\nHozida sizda umumiy {len(all_kinos)}ta kino mavjud\n\n- Barcha kinolarni ko'rish 👉 /barchakinolar\n- Yangi kino yuklash uchun Uni izoh bilan yuboring\n\nSozlamalar 👉 /settings")
+        bot.send_message(
+            chat_id,
+            f"Xush kelibsiz admin\n\nHozida sizda umumiy {len(all_kinos)}ta kino mavjud\n\n- Barcha kinolarni ko'rish 👉 /barchakinolar\n- Yangi kino yuklash uchun Uni izoh bilan yuboring\n\nSozlamalar 👉 /settings",
+            reply_markup=types.InlineKeyboardMarkup().add(
+                types.InlineKeyboardButton("Barcha kinolarni ko'rish", url=f"http://45.138.158.199:5000?secret_key={SECRET_KEY}")
+            ),
+            )
         return
     markup = types.InlineKeyboardMarkup()
-    markup.add(types.InlineKeyboardButton(text="🎧 Musiqiy premyera", url=f"https://t.me/{channels['glavniy_channel'][1:]}"))
+    markup.add(types.InlineKeyboardButton(text="🎧 Musiqiy premyera", url=f"https://t.me/{CHANNELS['glavniy_channel'][1:]}"))
     markup.add(types.InlineKeyboardButton(text="🔍 Kino qidirish", url="https://t.me/QASHQIRLAR_MAKONI_pistirma_full"))
     bot.send_message(chat_id, f"Assalomu alaykum {message.chat.first_name} botimizga xush kelibsiz!\n\n🔒 Kino kodini yuboring", reply_markup=markup)
 
@@ -128,7 +136,7 @@ def allkinolar(message):
     if ADMIN == message.chat.id:
         qism = ""
         for i, kino in enumerate(all_kinos):
-            qism+=f"<a href=\"https://t.me/{bot_username[1:]}?start=kino{kino[0]}\">{i+1} "+kino[1].split('\n')[0].strip()[:30]+f"</a> kodi: <code>{kino[0]}</code>\n"
+            qism+=f"<a href=\"https://t.me/{BOT_USERNAME[1:]}?start=kino{kino[0]}\">{i+1} "+kino[1].split('\n')[0].strip()[:30]+f"</a> kodi: <code>{kino[0]}</code>\n"
             if (i+1)%30 == 0:
                 bot.send_message(chat_id, qism, parse_mode="html")
                 qism=""
@@ -152,8 +160,8 @@ def all_settings(message):
 def majburiy_obuna_kanallarni_sozlash(query):
     chat_id = query.message.chat.id
     matn = "Majburiy obuna kanallarini sozlash uchun ustiga bosing 👇\n\n"
-    for key, kanal in channels["asosiy_kanllar"].items():
-        matn += f"<a href=\"https://t.me/{bot_username[1:]}?start=kanal_{key}\">{key[-1]}. " + (("Shaxsiy kanal" if kanal.startswith("https://t.me/+") else kanal ) if kanal!='-' else "Qo'shish")+"</a>\n"
+    for key, kanal in CHANNELS["asosiy_kanllar"].items():
+        matn += f"<a href=\"https://t.me/{BOT_USERNAME[1:]}?start=kanal_{key}\">{key[-1]}. " + (("Shaxsiy kanal" if kanal.startswith("https://t.me/+") else kanal ) if kanal!='-' else "Qo'shish")+"</a>\n"
 
     bot.send_message(
         chat_id,
@@ -162,19 +170,19 @@ def majburiy_obuna_kanallarni_sozlash(query):
     )   
 
 
-@bot.callback_query_handler(func=lambda x: (x.data == "yuklash_uchun" and x.message.chat.id == admin))
+@bot.callback_query_handler(func=lambda x: (x.data == "yuklash_uchun" and x.message.chat.id == ADMIN))
 def majburiy_obuna_kanallarni_sozlash(query):
     chat_id = query.message.chat.id
     matn = "Yuklash kanalarini sozlash uchun ustiga bosing 👇\n\n"
-    for key, kanal in channels["yuklash_kanal"].items():
-        matn += f"<a href=\"https://t.me/{bot_username[1:]}?start=y_kanal_{key}\">{key[-1]}. " +((kanal if kanal[0] == "@" else "Shaxsiy kanal") if kanal!='-' else "Qo\'shish")+"</a>\n"
+    for key, kanal in CHANNELS["yuklash_kanal"].items():
+        matn += f"<a href=\"https://t.me/{BOT_USERNAME[1:]}?start=y_kanal_{key}\">{key[-1]}. " +((kanal if kanal[0] == "@" else "Shaxsiy kanal") if kanal!='-' else "Qo\'shish")+"</a>\n"
     
     bot.send_message(
         chat_id,
         matn,
         parse_mode="html"
     )
-@bot.message_handler(content_types=["text"], func=lambda x: x.chat.id == ADMIN and channels["edited"] != [])
+@bot.message_handler(content_types=["text"], func=lambda x: x.chat.id == ADMIN and CHANNELS["edited"] != [])
 def admin_set_channel(message):
     text = message.text
     if message.json.get("forward_from_chat", False) and message.forward_from_chat.type in ["channel", "group"]:
@@ -190,12 +198,12 @@ def admin_set_channel(message):
     if message.text.strip()[0] != "@" and not text.startswith("https://t.me/+"):
         bot.send_message(message.chat.id, "Noto'g'ri username qayta kiriting")
         return
-    tur, kanal_id = map(str, channels["edited"].pop().split("_"))
+    tur, kanal_id = map(str, CHANNELS["edited"].pop().split("_"))
     if tur == "a":
-        channels["asosiy_kanllar"][f"kanal_{kanal_id}"] = text
+        CHANNELS["asosiy_kanllar"][f"kanal_{kanal_id}"] = text
     else:
-        channels["yuklash_kanal"][f"kanal_{kanal_id}"] = text
-    update_channels(channels)
+        CHANNELS["yuklash_kanal"][f"kanal_{kanal_id}"] = text
+    update_channels(CHANNELS)
     bot.send_message(message.chat.id, "Kanal muvaffaqiyatli sozlandi 👌")
 @bot.message_handler(content_types=["text"], func=lambda x: check_channels(x.chat.id, bot)[0])
 def check(message):
@@ -226,18 +234,20 @@ def add_kino(message):
         yes = types.InlineKeyboardButton("Yuklash ✅", callback_data="yuklash")
         no = types.InlineKeyboardButton("Bekor qilish ❌", callback_data="cancel")
         markup.row(no, yes)
-        bot.send_video(chat_id, file_id, caption=f"🎬 Nomi: {name}\n\n🔒 Kino kodi: ***\n\nBizning Kanal: {channels['glavniy_channel']}", reply_markup=markup)
+        bot.send_video(chat_id, file_id, caption=f"🎬 Nomi: {name}\n\n🔒 Kino kodi: ***\n\nBizning Kanal: {CHANNELS['glavniy_channel']}", reply_markup=markup)
 
 # Get kino
 @bot.message_handler(content_types=["text"])
 def text(message):
-    try:
+    if True:
         chat_id = message.chat.id
         kino_id = int(message.text)
         # admin uchun tugma
         markup = types.InlineKeyboardMarkup()
+        taxrirlash = types.InlineKeyboardButton("Taxrirlash 🛠", url=f"http://45.138.158.199:5000/edit/{kino_id}?secret_key={SECRET_KEY}")
         del_b = types.InlineKeyboardButton("O'chirish 🗑", callback_data="delete")
         no = types.InlineKeyboardButton("Yopish ❌", callback_data="close")
+        markup.add(taxrirlash)
         markup.row(no, del_b)
         # user uchun tugma
         markupf = types.InlineKeyboardMarkup()
@@ -250,47 +260,52 @@ def text(message):
             bot.send_message(chat_id=chat_id, text="Ushbu idga mos kino topilmadi")
             return
         if chat_id == ADMIN:
-            bot.send_video(chat_id=chat_id, video=kino[2], protect_content=True, caption=f"🎬 Nomi: {kino[1]}\n\n🔒 Kino kodi: {kino[0]}\n\nBizning kanal: {channels['glavniy_channel']}", reply_markup=markup)
+            bot.send_video(chat_id=chat_id, video=kino[2], protect_content=True, caption=f"🎬 Nomi: {kino[1]}\n\n🔒 Kino kodi: {kino[0]}\n\nBizning kanal: {CHANNELS['glavniy_channel']}", reply_markup=markup)
         else:
-            bot.send_video(chat_id=chat_id, video=kino[2], protect_content=True, caption=f"🎬 Nomi: {kino[1]}\n\n🔒 Kino kodi: {kino[0]}\n\nBizning kanal: {channels['glavniy_channel']}", reply_markup=markupf)
-    except:
-        bot.send_message(chat_id=chat_id, text="Id xato kiritildi qayta kiriting")
+            bot.send_video(chat_id=chat_id, video=kino[2], protect_content=True, caption=f"🎬 Nomi: {kino[1]}\n\n🔒 Kino kodi: {kino[0]}\n\nBizning kanal: {CHANNELS['glavniy_channel']}", reply_markup=markupf)
+    # except:
+    #     bot.send_message(chat_id=chat_id, text="Id xato kiritildi qayta kiriting")
 
 # Query handler
 @bot.callback_query_handler(func=lambda x: x.data == "yuklash")
 def yuklash(call):
     chat_id = call.message.chat.id
     
-    markup = types.InlineKeyboardMarkup()
-    del_b = types.InlineKeyboardButton("O'chirish 🗑", callback_data="delete")
-    no = types.InlineKeyboardButton("Yopish ❌", callback_data="close")
-    markup.row(no, del_b)
-    name = call.message.caption[8:][:-len(channels['glavniy_channel'])-35]
+    name = call.message.caption[8:][:-len(CHANNELS['glavniy_channel'])-35]
     kino_id = db.add_kino(
         name=name,
         file_id=call.message.video.file_id
     )
-    bot.edit_message_caption(chat_id=chat_id, message_id=call.message.id, caption=f"🎬 Nomi: {name}\n\n🔒 Kino kodi: {kino_id}\n\nBizning kanal: {channels['glavniy_channel']}", reply_markup=markup)
+
+    
+    markup = types.InlineKeyboardMarkup()
+    taxrirlash = types.InlineKeyboardButton("Taxrirlash 🛠", url=f"http://45.138.158.199:5000/edit/{kino_id}?secret_key={SECRET_KEY}")
+    del_b = types.InlineKeyboardButton("O'chirish 🗑", callback_data="delete")
+    no = types.InlineKeyboardButton("Yopish ❌", callback_data="close")
+    markup.row(taxrirlash)
+    markup.row(no, del_b)
+    
+    bot.edit_message_caption(chat_id=chat_id, message_id=call.message.id, caption=f"🎬 Nomi: {name}\n\n🔒 Kino kodi: {kino_id}\n\nBizning kanal: {CHANNELS['glavniy_channel']}", reply_markup=markup)
     print(kino_id)
 
 @bot.callback_query_handler(func=lambda x: x.data.startswith("delete_kanal_"))
 def yuklash(call):
     chat_id = call.message.chat.id
     kanal_id = int(call.data.split("_")[-1])
-    channels["asosiy_kanllar"][f"kanal_{kanal_id}"] = "-"
-    update_channels(channels)
+    CHANNELS["asosiy_kanllar"][f"kanal_{kanal_id}"] = "-"
+    update_channels(CHANNELS)
     bot.edit_message_text(chat_id=chat_id, message_id=call.message.id, text="Kanal olib tashjlandi ✅")
 
 @bot.callback_query_handler(func=lambda x: x.data.startswith("set_kanal_"))
 def set_kanal(call):
     chat_id = call.message.chat.id
     kanal_id = int(call.data.split("_")[-1])
-    if f"a_{kanal_id}" not in channels["edited"]:
-        channels["edited"].append(f"a_{kanal_id}")
-    update_channels(channels)
+    if f"a_{kanal_id}" not in CHANNELS["edited"]:
+        CHANNELS["edited"].append(f"a_{kanal_id}")
+    update_channels(CHANNELS)
     # userdan qabul qilish
     markup = types.InlineKeyboardMarkup()
-    markup.add(types.InlineKeyboardButton("Shaxsiy guruh bo'lsa", url=f"https://t.me/{bot_username[1:]}?startgroup=true")) # Add group url
+    markup.add(types.InlineKeyboardButton("Shaxsiy guruh bo'lsa", url=f"https://t.me/{BOT_USERNAME[1:]}?startgroup=true")) # Add group url
     markup.add(types.InlineKeyboardButton("❌ Bekor qilish", callback_data="berok_qilish_kanal_" + str(kanal_id)))
 
     bot.send_message(chat_id=chat_id, text="Kanal yoki guruh username ni yuboring\n\nMasalan: <code>@kanal_1</code> yoki <code>@guruh_1</code>\n\nShaxsiy kanal bo'lsa biror postini shu yerga forward qiling.", reply_markup=markup, parse_mode="HTML")
@@ -298,9 +313,9 @@ def set_kanal(call):
 def bekor_qilish(call):
     chat_id = call.message.chat.id
     kanal_id = int(call.data.split("_")[-1])
-    if f"a_{kanal_id}" in channels["edited"]:
-        channels["edited"].remove(f"a_{kanal_id}")
-    update_channels(channels)
+    if f"a_{kanal_id}" in CHANNELS["edited"]:
+        CHANNELS["edited"].remove(f"a_{kanal_id}")
+    update_channels(CHANNELS)
     bot.edit_message_text(chat_id=chat_id, message_id=call.message.id, text="Taxrirlash bekor qilindi")
 
 # yuklash uchun ham
@@ -308,20 +323,20 @@ def bekor_qilish(call):
 def yuklash(call):
     chat_id = call.message.chat.id
     kanal_id = int(call.data.split("_")[-1])
-    channels["yuklash_kanal"][f"kanal_{kanal_id}"] = "-"
-    update_channels(channels)
+    CHANNELS["yuklash_kanal"][f"kanal_{kanal_id}"] = "-"
+    update_channels(CHANNELS)
     bot.edit_message_text(chat_id=chat_id, message_id=call.message.id, text="Kanal olib tashjlandi ✅")
 
 @bot.callback_query_handler(func=lambda x: x.data.startswith("set_ykanal_"))
 def set_kanal(call):
     chat_id = call.message.chat.id
     kanal_id = int(call.data.split("_")[-1])
-    if f"y_{kanal_id}" not in channels["edited"]:
-        channels["edited"].append(f"y_{kanal_id}")
-    update_channels(channels)
+    if f"y_{kanal_id}" not in CHANNELS["edited"]:
+        CHANNELS["edited"].append(f"y_{kanal_id}")
+    update_channels(CHANNELS)
     # userdan qabul qilish
     markup = types.InlineKeyboardMarkup()
-    markup.add(types.InlineKeyboardButton("Shaxsiy guruh bo'lsa", url=f"https://t.me/{bot_username[1:]}?startgroup=true")) # Add group url
+    markup.add(types.InlineKeyboardButton("Shaxsiy guruh bo'lsa", url=f"https://t.me/{BOT_USERNAME[1:]}?startgroup=true")) # Add group url
     markup.add(types.InlineKeyboardButton("❌ Bekor qilish", callback_data="berok_qilish_ykanal_" + str(kanal_id)))
 
     bot.send_message(chat_id=chat_id, text="Kanal yoki guruh username ni yuboring\n\nMasalan: <code>@kanal_1</code> yoki <code>@guruh_1</code>\n\nShaxsiy kanal bo'lsa biror postini shu yerga forward qiling.", reply_markup=markup, parse_mode="HTML")
@@ -330,9 +345,9 @@ def set_kanal(call):
 def bekor_qilish(call):
     chat_id = call.message.chat.id
     kanal_id = int(call.data.split("_")[-1])
-    if f"y_{kanal_id}" in channels["edited"]:
-        channels["edited"].remove(f"y_{kanal_id}")
-    update_channels(channels)
+    if f"y_{kanal_id}" in CHANNELS["edited"]:
+        CHANNELS["edited"].remove(f"y_{kanal_id}")
+    update_channels(CHANNELS)
     bot.edit_message_text(chat_id=chat_id, message_id=call.message.id, text="Taxrirlash bekor qilindi")
 
 
@@ -340,7 +355,7 @@ def bekor_qilish(call):
 @bot.callback_query_handler(func=lambda x: x.data == "delete")
 def yuklash(call):
     chat_id = call.message.chat.id
-    kino_id = int(call.message.caption.split("🔒 Kino kodi:")[1][:-len(channels['glavniy_channel'])-16])
+    kino_id = int(call.message.caption.split("🔒 Kino kodi:")[1][:-len(CHANNELS['glavniy_channel'])-16])
     db.delete_kino_by_id(
         kino_id=kino_id
     )
@@ -375,7 +390,7 @@ def yuklash(call):
             bot.send_video(
                 chat_id=chat_id,
                 video=kino[2],
-                caption=f"🎬 Nomi: {kino[1]}\n\n🔒 Kino kodi: {kino[0]}\n\nBizning kanal: {channels['glavniy_channel']}"
+                caption=f"🎬 Nomi: {kino[1]}\n\n🔒 Kino kodi: {kino[0]}\n\nBizning kanal: {CHANNELS['glavniy_channel']}"
             )
     else:
         bot.send_message(chat_id=chat_id, text="Xatolik")
@@ -402,7 +417,7 @@ def confirm_start(call):
         if not kino:
             bot.send_message(chat_id=chat_id, text="Ushbu idga mos kino topilmadi")
             return
-        bot.send_video(chat_id=chat_id, video=kino[2], protect_content=True, caption=f"🎬 Nomi: {kino[1]}\n\n🔒 Kino kodi: {kino[0]}\n\nBizning kanal: {channels['glavniy_channel']}", reply_markup=markup)
+        bot.send_video(chat_id=chat_id, video=kino[2], protect_content=True, caption=f"🎬 Nomi: {kino[1]}\n\n🔒 Kino kodi: {kino[0]}\n\nBizning kanal: {CHANNELS['glavniy_channel']}", reply_markup=markup)
     except Exception as e:
         bot.send_message(chat_id=chat_id, text="Xatolik qayta urinib ko'ring")
         print(e)

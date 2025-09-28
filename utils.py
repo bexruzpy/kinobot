@@ -1,4 +1,4 @@
-from settings import channels
+from settings import CHANNELS
 from telebot import types
 import json
 
@@ -13,7 +13,7 @@ def is_subscribed(user_id, channel, bot):
         return False
 def check_channels(tg_id, bot):
     not_subcribes = []
-    for channel in list(channels["asosiy_kanllar"].values()): #+[glavniy_channel]:
+    for channel in list(CHANNELS["asosiy_kanllar"].values()): #+[glavniy_channel]:
         if "|" in channel:
             if not is_subscribed(tg_id, channel.split("|")[1], bot):
                 not_subcribes.append(channel)
@@ -24,7 +24,7 @@ def check_channels(tg_id, bot):
     return len(not_subcribes) != 0, not_subcribes
 def check_yuklash(tg_id, bot):
     not_subcribes = []
-    for channel in list(channels["yuklash_kanal"].values()): #+[glavniy_channel]:
+    for channel in list(CHANNELS["yuklash_kanal"].values()): #+[glavniy_channel]:
         if not is_subscribed(tg_id, channel, bot):
             not_subcribes.append(channel)
     return len(not_subcribes) != 0, not_subcribes

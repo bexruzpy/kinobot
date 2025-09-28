@@ -52,9 +52,12 @@ class Chanel:
         return str(self.id)
 
 # Dastur ishga tushganda kanallarni yuklab olish
-channels_data = get_channels_from_json()
-CHANNELS = [Chanel(ch) for ch in channels_data]
-
+# channels_data = get_channels_from_json()
+# CHANNELS = [Chanel(ch) for ch in channels_data]
+def get_channels():
+    with open("kanallar.json", "r", encoding="utf-8") as f:
+        return json.load(f)
+CHANNELS = get_channels()
 # --- O'zgaruvchilar to'g'ri yuklanganini tekshirish uchun ---
 # Ushbu faylni to'g'ridan-to'g'ri ishga tushirsangiz, natijalarni ko'rishingiz mumkin.
 if __name__ == "__main__":
