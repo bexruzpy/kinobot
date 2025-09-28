@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KinoBot Admin Paneli</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+        :root {
+            --bg-color: #f4f7fa;
+            --sidebar-bg: #1f2937;
+            --text-color: #333;
+            --sidebar-text: #e5e7eb;
+            --primary-color: #3b82f6;
+            --danger-color: #ef4444;
+            --success-color: #22c55e;
+            --border-color: #e5e7eb;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            display: flex;
+            background-color: var(--bg-color);
+        }
+
+        .sidebar {
+            width: 250px;
+            background-color: var(--sidebar-bg);
+            color: var(--sidebar-text);
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            position: fixed;
+            z-index: 100;
+        }
+
+        .sidebar h2 {
+            padding: 1.5rem;
+            text-align: center;
+            background-color: rgba(0,0,0,0.2);
+        }
+
+        .sidebar ul {
+            list-style: none;
+            flex-grow: 1;
+        }
+
+        .sidebar ul li a {
+            display: block;
+            padding: 1rem 1.5rem;
+            color: var(--sidebar-text);
+            text-decoration: none;
+            transition: background-color 0.2s;
+        }
+
+        .sidebar ul li a i {
+            margin-right: 10px;
+            width: 20px;
+            text-align: center;
+        }
+
+        .sidebar ul li.active a, .sidebar ul li a:hover {
+            background-color: var(--primary-color);
+            color: white;
+        }
+
+        .logout {
+            padding: 1rem 1.5rem;
+            border-top: 1px solid #374151;
+        }
+        
+        .main-content {
+            margin-left: 250px;
+            flex-grow: 1;
+            padding: 2rem;
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+        }
+
+        header h1 {
+            color: var(--text-color);
+        }
+
+        .add-btn, .edit-btn, .delete-btn {
+            border: none;
+            padding: 0.7rem 1.2rem;
+            border-radius: 6px;
+            color: white;
+            cursor: pointer;
+            font-size: 0.9rem;
+            font-weight: 500;
+            transition: opacity 0.2s;
+        }
+        .add-btn:hover, .edit-btn:hover, .delete-btn:hover {
+            opacity: 0.9;
+        }
+
+        .add-btn { background-color: var(--primary-color); }
+        .edit-btn { background-color: var(--success-color); margin-right: 5px; padding: 0.5rem 0.7rem; }
+        .delete-btn { background-color: var(--danger-color); padding: 0.5rem 0.7rem; }
+
+        .content-table {
+            background-color: white;
+            border-radius: 8px;
+            padding: 1.5rem;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            overflow-x: auto; /* Kichik ekranlar uchun */
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th, td {
+            padding: 1rem;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+            color: var(--text-color);
+            vertical-align: middle;
+        }
+
+        thead th {
+            color: #6b7280;
+            font-weight: 600;
+        }
+
+        tbody tr:hover {
+            background-color: #f9fafb;
+        }
+
+        td img {
+            width: 40px;
+            height: 60px;
+            object-fit: cover;
+            border-radius: 4px;
+        }
+        td code {
+            background-color: #e5e7eb;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            word-break: break-all;
+        }
+    </style>
+</head>
+<body>
+    <div class="sidebar">
+        <h2>🎬 KinoBot Panel</h2>
+        <ul>
+            <li class="active"><a href="#"><i class="fas fa-film"></i> Kinolar</a></li>
+            <li><a href="#"><i class="fas fa-users"></i> Foydalanuvchilar</a></li>
+            <li><a href="#"><i class="fas fa-chart-bar"></i> Statistika</a></li>
+            <li><a href="#"><i class="fas fa-cog"></i> Sozlamalar</a></li>
+        </ul>
+        <div class="logout">
+            <a href="#"><i class="fas fa-sign-out-alt"></i> Chiqish</a>
+        </div>
+    </div>
+
+    <div class="main-content">
+        <header>
+            <h1>Kinolar Ro'yxati</h1>
+            <button class="add-btn"><i class="fas fa-plus"></i> Yangi Kino Qo'shish</button>
+        </header>
+
+        <div class="content-table">
+            <table>
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Poster</th>
+                        <th>Nomi</th>
+                        <th>Yili</th>
+                        <th>Telegram Fayl ID</th>
+                        <th>Amallar</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>1</td>
+                        <td><img src="https://via.placeholder.com/40x60" alt="poster"></td>
+                        <td>O'rgimchak odam: Uyga yo'l yo'q</td>
+                        <td>2021</td>
+                        <td><code>BAACAgIAAxkBAA...</code></td>
+                        <td>
+                            <button class="edit-btn"><i class="fas fa-edit"></i></button>
+                            <button class="delete-btn"><i class="fas fa-trash"></i></button>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>2</td>
+                        <td><img src="https://via.placeholder.com/40x60" alt="poster"></td>
+                        <td>Forsaj 10</td>
+                        <td>2023</td>
+                        <td><code>CAACAgIAAxkBAA...</code></td>
+                        <td>
+                            <button class="edit-btn"><i class="fas fa-edit"></i></button>
+                            <button class="delete-btn"><i class="fas fa-trash"></i></button>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>3</td>
+                        <td><img src="https://via.placeholder.com/40x60" alt="poster"></td>
+                        <td>Avatar: Suv yo'li</td>
+                        <td>2022</td>
+                        <td><code>FAACAgIAAxkBAA...</code></td>
+                        <td>
+                            <button class="edit-btn"><i class="fas fa-edit"></i></button>
+                            <button class="delete-btn"><i class="fas fa-trash"></i></button>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        // "Yangi Kino Qo'shish" tugmasini topib olamiz
+        const addButton = document.querySelector('.add-btn');
+
+        // Unga bosilganda xabar chiqarish funksiyasini qo'shamiz
+        addButton.addEventListener('click', () => {
+            alert("Bu yerda yangi kino qo'shish uchun forma ochilishi kerak.");
+        });
+
+        // Barcha "Tahrirlash" tugmalarini topib olamiz
+        const editButtons = document.querySelectorAll('.edit-btn');
+
+        // Har biriga bosilganda xabar chiqarish funksiyasini qo'shamiz
+        editButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                alert("Bu yerda shu kinoni tahrirlash uchun forma ochilishi kerak.");
+            });
+        });
+
+        // Barcha "O'chirish" tugmalarini topib olamiz
+        const deleteButtons = document.querySelectorAll('.delete-btn');
+        
+        // Har biriga bosilganda tasdiqlash so'rovini chiqarish funksiyasini qo'shamiz
+        deleteButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                const isConfirmed = confirm("Rostdan ham bu kinoni o'chirmoqchimisiz?");
+                
+                if (isConfirmed) {
+                    // Agar foydalanuvchi "OK" ni bossa, backend'ga o'chirish so'rovini yuborish kerak
+                    alert("O'chirish uchun backend'ga so'rov yuborildi!");
+                    // Haqiqiy o'chirish uchun backend kodi kerak bo'ladi
+                } else {
+                    alert("O'chirish bekor qilindi.");
+                }
+            });
+        });
+    </script>
+</body>
+</html>

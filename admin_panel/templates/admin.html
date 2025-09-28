@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KinoBot Admin Paneli</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    <style>
+        /* Barcha CSS kodlari shu yerda */
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+        :root{--bg-color:#f4f7fa;--sidebar-bg:#1f2937;--text-color:#333;--sidebar-text:#e5e7eb;--primary-color:#3b82f6;--danger-color:#ef4444;--success-color:#22c55e;--border-color:#e5e7eb;}
+        *{margin:0;padding:0;box-sizing:border-box;}
+        body{font-family:'Inter',sans-serif;display:flex;background-color:var(--bg-color);}
+        .sidebar{width:250px;background-color:var(--sidebar-bg);color:var(--sidebar-text);height:100vh;display:flex;flex-direction:column;position:fixed;z-index:100;}
+        .sidebar h2{padding:1.5rem;text-align:center;background-color:rgba(0,0,0,0.2);}
+        .sidebar ul{list-style:none;flex-grow:1;}
+        .sidebar ul li a{display:block;padding:1rem 1.5rem;color:var(--sidebar-text);text-decoration:none;transition:background-color .2s;}
+        .sidebar ul li a i{margin-right:10px;width:20px;text-align:center;}
+        .sidebar ul li.active a,.sidebar ul li a:hover{background-color:var(--primary-color);color:white;}
+        .main-content{margin-left:250px;flex-grow:1;padding:2rem;}
+        header{display:flex;justify-content:space-between;align-items:center;margin-bottom:2rem;}
+        header h1{color:var(--text-color);}
+        .btn{border:none;padding:.7rem 1.2rem;border-radius:6px;color:white;cursor:pointer;font-size:.9rem;font-weight:500;transition:opacity .2s;}
+        .btn:hover{opacity:.9;}
+        .btn.add-btn{background-color:var(--primary-color);}
+        .btn.edit-btn{background-color:var(--success-color);margin-right:5px;padding:.5rem .7rem;}
+        .btn.delete-btn{background-color:var(--danger-color);padding:.5rem .7rem;}
+        .content-table{background-color:white;border-radius:8px;padding:1.5rem;box-shadow:0 4px 6px rgba(0,0,0,0.05);overflow-x:auto;}
+        table{width:100%;border-collapse:collapse;}
+        th,td{padding:1rem;text-align:left;border-bottom:1px solid var(--border-color);color:var(--text-color);vertical-align:middle;}
+        thead th{color:#6b7280;font-weight:600;}
+        tbody tr:hover{background-color:#f9fafb;}
+        td img{width:40px;height:60px;object-fit:cover;border-radius:4px;}
+        td code{background-color:#e5e7eb;padding:2px 6px;border-radius:4px;font-size:.8rem;word-break:break-all;}
+        /* Modal Stili */
+        .modal{display:none;position:fixed;z-index:1000;left:0;top:0;width:100%;height:100%;background-color:rgba(0,0,0,0.5);}
+        .modal-content{background-color:#fff;margin:15% auto;padding:2rem;border-radius:8px;width:90%;max-width:500px;}
+        .modal-header{display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--border-color);padding-bottom:1rem;margin-bottom:1rem;}
+        .close-btn{cursor:pointer;font-size:1.5rem;color:#aaa;}
+        .modal-body form label{display:block;margin-bottom:.5rem;font-weight:600;}
+        .modal-body form input,.modal-body form textarea{width:100%;padding:.7rem;border:1px solid var(--border-color);border-radius:6px;margin-bottom:1rem;}
+        .modal-body form textarea{resize:vertical;min-height:80px;}
+    </style>
+</head>
+<body>
+    <div class="sidebar">
+        <h2>🎬 KinoBot Panel</h2>
+        <ul>
+            <li class="active"><a href="#"><i class="fas fa-film"></i> Kinolar</a></li>
+        </ul>
+    </div>
+
+    <div class="main-content">
+        <header>
+            <h1>Kinolar Ro'yxati</h1>
+            <button class="btn add-btn" id="addKinoBtn"><i class="fas fa-plus"></i> Yangi Kino Qo'shish</button>
+        </header>
+
+        <div class="content-table">
+            <table>
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Nomi</th>
+                        <th>Telegram Fayl ID</th>
+                        <th>Amallar</th>
+                    </tr>
+                </thead>
+                <tbody id="kinolarList">
+                    </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div id="addKinoModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Yangi Kino Qo'shish</h2>
+                <span class="close-btn">&times;</span>
+            </div>
+            <div class="modal-body">
+                <form id="addKinoForm">
+                    <label for="kinoName">Kino Nomi:</label>
+                    <textarea id="kinoName" name="name" required></textarea>
+                    
+                    <label for="fileId">Telegram Fayl ID:</label>
+                    <input type="text" id="fileId" name="file_id" required>
+                    
+                    <button type="submit" class="btn add-btn">Saqlash</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+    // Barcha JavaScript kodlari shu yerda
+    document.addEventListener('DOMContentLoaded', function() {
+        const kinolarList = document.getElementById('kinolarList');
+        const addKinoModal = document.getElementById('addKinoModal');
+        const addKinoBtn = document.getElementById('addKinoBtn');
+        const closeBtn = document.querySelector('.close-btn');
+        const addKinoForm = document.getElementById('addKinoForm');
+
+        // Barcha kinolarni serverdan olib, jadvalga chizish funksiyasi
+        async function fetchKinolar() {
+            try {
+                const response = await fetch('/api/kinolar');
+                const kinolar = await response.json();
+                kinolarList.innerHTML = ''; // Jadvalni tozalash
+
+                if (kinolar.error) {
+                    throw new Error(kinolar.error);
+                }
+
+                kinolar.forEach(kino => {
+                    const row = `
+                        <tr>
+                            <td>${kino.id}</td>
+                            <td>${kino.name}</td>
+                            <td><code>${kino.file_id}</code></td>
+                            <td>
+                                <button class="btn delete-btn" data-id="${kino.id}"><i class="fas fa-trash"></i></button>
+                            </td>
+                        </tr>
+                    `;
+                    kinolarList.innerHTML += row;
+                });
+            } catch (error) {
+                kinolarList.innerHTML = `<tr><td colspan="4">Xatolik: ${error.message}</td></tr>`;
+            }
+        }
+
+        // Yangi kino qo'shish funksiyasi
+        async function addKino(event) {
+            event.preventDefault();
+            const name = document.getElementById('kinoName').value;
+            const file_id = document.getElementById('fileId').value;
+
+            try {
+                const response = await fetch('/api/kinolar', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name, file_id })
+                });
+                const result = await response.json();
+                if (result.error) { throw new Error(result.error); }
+                
+                closeModal();
+                fetchKinolar(); // Jadvalni yangilash
+            } catch (error) {
+                alert(`Xatolik: ${error.message}`);
+            }
+        }
+
+        // Kinoni o'chirish funksiyasi
+        async function deleteKino(kinoId) {
+             if (!confirm(`${kinoId}-ID'li kinoni o'chirmoqchimisiz?`)) return;
+
+             try {
+                const response = await fetch(`/api/kinolar/${kinoId}`, { method: 'DELETE' });
+                const result = await response.json();
+                if (result.error) { throw new Error(result.error); }
+                
+                fetchKinolar(); // Jadvalni yangilash
+             } catch (error) {
+                alert(`Xatolik: ${error.message}`);
+             }
+        }
+        
+        // Modalni ochish va yopish
+        function showModal() { addKinoModal.style.display = 'block'; }
+        function closeModal() { 
+            addKinoModal.style.display = 'none'; 
+            addKinoForm.reset();
+        }
+
+        addKinoBtn.onclick = showModal;
+        closeBtn.onclick = closeModal;
+        window.onclick = function(event) {
+            if (event.target == addKinoModal) { closeModal(); }
+        }
+
+        // Formani jo'natish hodisasi
+        addKinoForm.addEventListener('submit', addKino);
+        
+        // O'chirish tugmasi uchun hodisa (event delegation)
+        kinolarList.addEventListener('click', function(event) {
+            if (event.target.closest('.delete-btn')) {
+                const kinoId = event.target.closest('.delete-btn').dataset.id;
+                deleteKino(kinoId);
+            }
+        });
+
+        // Sahifa yuklanganda kinolarni birinchi marta olish
+        fetchKinolar();
+    });
+    </script>
+</body>
+</html>
