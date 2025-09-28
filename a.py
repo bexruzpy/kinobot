@@ -6,7 +6,7 @@ from utils import *
 from database import PostgreSQLController
 
 
-bot = TeleBot(bot_token)
+bot = TeleBot(BOT_TOKEN)
 
 
 # Sinfni chaqiramiz
@@ -19,7 +19,7 @@ db_name='kino_db',
     host='localhost',
     port=5432
 )
-@bot.message_handler(commands=["start"], func=lambda x: x.from_user.id == admin and x.chat.type == "supergroup" and channels["edited"] != [])
+@bot.message_handler(commands=["start"], func=lambda x: x.from_user.id == ADMIN and x.chat.type == "supergroup" and channels["edited"] != [])
 def admin_set_channel(message):
     ch_id = message.chat.id
     try:
@@ -43,7 +43,7 @@ def admin_set_channel(message):
 @bot.message_handler(func=lambda x: x.chat.type != "private")
 def ignore(message):
     print(message)
-@bot.message_handler(commands=["start"], func=lambda x: x.chat.id == admin and x.text.startswith("/start kanal_"))
+@bot.message_handler(commands=["start"], func=lambda x: x.chat.id == ADMIN and x.text.startswith("/start kanal_"))
 def kanal(message):
     chat_id = message.chat.id
     kanal_id = int(message.text.split("_")[-1])
@@ -63,7 +63,7 @@ def kanal(message):
     markup.row(types.InlineKeyboardButton("❌ Yopish", callback_data="cancel"))
     bot.send_message(chat_id, f"Majburiy obuna uchun kanal {kanal_id}\nKanal: {(kanal.split('|')[0] if kanal.startswith('https://t.me/+') else kanal) if kanal!='-' else 'sozlanmagan'}", reply_markup=markup)
 
-@bot.message_handler(commands=["start"], func=lambda x: x.chat.id == admin and x.text.startswith("/start y_kanal_"))
+@bot.message_handler(commands=["start"], func=lambda x: x.chat.id == ADMIN and x.text.startswith("/start y_kanal_"))
 def kanal(message):
     chat_id = message.chat.id
     kanal_id = int(message.text.split("_")[-1])
@@ -91,7 +91,7 @@ def cancel(call):
 def start(message):
     all_kinos = db.get_all_kinos()
     chat_id = message.chat.id
-    if admin == message.chat.id:
+    if ADMIN == message.chat.id:
         text = message.text.replace("/start", "").strip()
         print(text)
         if text != "":
@@ -106,7 +106,7 @@ def start(message):
                 if not kino:
                     bot.send_message(chat_id=chat_id, text="Ushbu idga mos kino topilmadi")
                     return
-                if chat_id == admin:
+                if chat_id == ADMIN:
                     bot.send_video(chat_id=chat_id, video=kino[2], protect_content=True, caption=f"🎬 Nomi: {kino[1]}\n\n🔒 Kino kodi: {kino[0]}\n\nBizning kanal: {channels['glavniy_channel']}", reply_markup=markup)
                 else:
                     bot.send_video(chat_id=chat_id, video=kino[2], protect_content=True, caption=f"🎬 Nomi: {kino[1]}\n\n🔒 Kino kodi: {kino[0]}\n\nBizning kanal: {channels['glavniy_channel']}")
@@ -125,7 +125,7 @@ def allkinolar(message):
     chat_id = message.chat.id
     all_kinos = db.get_all_kinos()
 
-    if admin == message.chat.id:
+    if ADMIN == message.chat.id:
         qism = ""
         for i, kino in enumerate(all_kinos):
             qism+=f"<a href=\"https://t.me/{bot_username[1:]}?start=kino{kino[0]}\">{i+1} "+kino[1].split('\n')[0].strip()[:30]+f"</a> kodi: <code>{kino[0]}</code>\n"
@@ -135,7 +135,7 @@ def allkinolar(message):
         if qism != "":
             bot.send_message(chat_id, qism, parse_mode="html")
 
-@bot.message_handler(commands=["settings"], func=lambda x: x.chat.id == admin)
+@bot.message_handler(commands=["settings"], func=lambda x: x.chat.id == ADMIN)
 def all_settings(message):
     chat_id = message.chat.id
     all_kinos = db.get_all_kinos()
@@ -148,7 +148,7 @@ def all_settings(message):
     bot.send_message(chat_id, f"Assalomu alaykum {message.chat.first_name}\n\nKanallarni sozlash", reply_markup=markup)
 
 
-@bot.callback_query_handler(func=lambda x: (x.data == "majburiy_obuna" and x.message.chat.id == admin))
+@bot.callback_query_handler(func=lambda x: (x.data == "majburiy_obuna" and x.message.chat.id == ADMIN))
 def majburiy_obuna_kanallarni_sozlash(query):
     chat_id = query.message.chat.id
     matn = "Majburiy obuna kanallarini sozlash uchun ustiga bosing 👇\n\n"
@@ -174,7 +174,7 @@ def majburiy_obuna_kanallarni_sozlash(query):
         matn,
         parse_mode="html"
     )
-@bot.message_handler(content_types=["text"], func=lambda x: x.chat.id == admin and channels["edited"] != [])
+@bot.message_handler(content_types=["text"], func=lambda x: x.chat.id == ADMIN and channels["edited"] != [])
 def admin_set_channel(message):
     text = message.text
     if message.json.get("forward_from_chat", False) and message.forward_from_chat.type in ["channel", "group"]:
@@ -219,7 +219,7 @@ def check(message):
 @bot.message_handler(content_types=["video"])
 def add_kino(message):
     chat_id = message.chat.id
-    if chat_id == admin:
+    if chat_id == ADMIN:
         file_id = message.video.file_id
         name = message.caption
         markup = types.InlineKeyboardMarkup()
@@ -249,7 +249,7 @@ def text(message):
         if not kino:
             bot.send_message(chat_id=chat_id, text="Ushbu idga mos kino topilmadi")
             return
-        if chat_id == admin:
+        if chat_id == ADMIN:
             bot.send_video(chat_id=chat_id, video=kino[2], protect_content=True, caption=f"🎬 Nomi: {kino[1]}\n\n🔒 Kino kodi: {kino[0]}\n\nBizning kanal: {channels['glavniy_channel']}", reply_markup=markup)
         else:
             bot.send_video(chat_id=chat_id, video=kino[2], protect_content=True, caption=f"🎬 Nomi: {kino[1]}\n\n🔒 Kino kodi: {kino[0]}\n\nBizning kanal: {channels['glavniy_channel']}", reply_markup=markupf)

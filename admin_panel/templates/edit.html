@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kinoni Tahrirlash</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+        
+        /* Asosiy ranglar va o'zgaruvchilar */
+        :root {
+            --bg-color: #f4f7fa;
+            --primary-color: #3b82f6;
+            --border-color: #e5e7eb;
+            --text-color: #333;
+            --label-color: #4b5563;
+            --white-color: #ffffff;
+            --gray-color: #6b7280;
+        }
+
+        /* Umumiy stillar */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-color);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 1rem;
+        }
+
+        /* Tahrirlash uchun asosiy konteyner */
+        .edit-container {
+            background-color: var(--white-color);
+            padding: 2rem 2.5rem;
+            border-radius: 12px;
+            box-shadow: 0 6px 12px rgba(0,0,0,0.1);
+            width: 100%;
+            max-width: 500px;
+        }
+
+        /* Sarlavha */
+        .edit-container h1 {
+            text-align: center;
+            margin-bottom: 2rem;
+            color: var(--text-color);
+            font-size: 1.8rem;
+        }
+        
+        /* Formalar uchun guruh */
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        /* Yorliq (label) stillari */
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            color: var(--label-color);
+        }
+
+        /* Kiritish maydoni (input) stillari */
+        input {
+            width: 100%;
+            padding: 0.8rem 1rem;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+        textarea {
+            font-family: 'Inter', sans-serif;
+            width: 100%;
+            height: 20vh;
+            padding: 0.8rem 1rem;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.25);
+        }
+        textarea:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.25);
+        }
+        
+        /* Tugmalar guruhi */
+        .btn-group {
+            display: flex;
+            gap: 1rem;
+            margin-top: 2rem;
+        }
+        
+        /* Umumiy tugma stillari */
+        .btn {
+            flex-grow: 1;
+            border: none;
+            padding: 0.8rem 1.5rem;
+            border-radius: 8px;
+            color: var(--white-color);
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 500;
+            text-decoration: none;
+            text-align: center;
+            transition: opacity 0.2s;
+        }
+
+        .btn:hover {
+            opacity: 0.9;
+        }
+
+        /* Tugma turlari */
+        .save-btn {
+            background-color: var(--primary-color);
+        }
+
+        .cancel-btn {
+            background-color: var(--gray-color);
+        }
+    </style>
+</head>
+<body>
+    <div class="edit-container">
+        <h1>Kinoni Tahrirlash</h1>
+        
+        <!-- 
+            Backendga ma'lumot jo'natish uchun forma.
+            'action' va 'input' maydonlaridagi 'value' qiymatlari 
+            odatda Flask/Jinja2 kabi andozalash tizimi orqali to'ldiriladi.
+        -->
+        <form method="POST" action="/update/{{ kino.id }}?X-API-Key={{ secret_key }}">
+            <div class="form-group">
+                <label for="kinoIdEdit">Kino Kodi:</label>
+                <input type="number" id="kinoIdEdit" name="new_id" value="{{ kino.id }}" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="kinoNameEdit">Kino Nomi va Izohi:</label>
+                <textarea type="text" id="kinoNameEdit" name="name" required>{{ kino.name }}</textarea>
+            </div>
+            
+            <div class="btn-group">
+                <!-- Asosiy sahifaga qaytish havolasi -->
+                <a href="/?secret_key={{ secret_key }}" class="btn cancel-btn">Bekor qilish</a>
+                <!-- O'zgarishlarni saqlash tugmasi -->
+                <button type="submit" class="btn save-btn">Saqlash</button>
+            </div>
+        </form>
+    </div>
+</body>
+</html>

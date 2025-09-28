@@ -97,3 +97,11 @@ class PostgreSQLController:
         select_query = "SELECT * FROM kinolar WHERE id = %s"
         self.execute(select_query, (kino_id,))
         return self.fetchone()
+    # Yangilash metodi
+    def update_kino(self, old_kino_id, new_name, new_id):
+        update_query = """
+        UPDATE kinolar
+        SET name = %s, id = %s
+        WHERE id = %s
+        """
+        self.execute(update_query, (new_name, new_id, old_kino_id))
